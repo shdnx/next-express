@@ -1,0 +1,18 @@
+{
+  "name": "next-express-router",
+  "version": "0.0.1",
+  "description": "A thin wrapper around Express to make it easy to use it with Next.js. Provides a simple API for loading data that's then passed to the page components.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "next.js",
+    "express"
+  ],
+  "files": [
+    "src/*.js"
+  ],
+  "author": "Gabor Kozar <id@gaborkozar.me>",
+  "license": "BSD-2-Clause",
+  "repository": ""
+}
