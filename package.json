@@ -12,7 +12,11 @@
   "files": [
     "src/*.js"
   ],
-  "author": "Gabor Kozar <id@gaborkozar.me>",
+  "author": {
+    "name": "Gabor Kozar",
+    "email": "id@gaborkozar.me>"
+  },
   "license": "BSD-2-Clause",
-  "repository": ""
+  "repository": "https://github.com/shdnx/next-express-router",
+  "dependencies": {}
 }
