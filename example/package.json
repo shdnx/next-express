@@ -1,19 +1,21 @@
 {
-  "name": "next-express-router-example",
+  "name": "nextpress-example",
   "version": "1.0.0",
-  "description": "An example application built with Next.js, React, Express and next-express-router.",
+  "description": "An example application built with Next.js, React, Express and nextpress.",
   "main": "server/index.js",
   "scripts": {
     "start": "nodemon -V -w server",
-    "build": "next build"
+    "build": "cd app && next build"
   },
-  "author": "Gabor Kozar <id@gaborkozar.me>",
+  "author": {
+    "name": "Gabor Kozar",
+    "email": "id@gaborkozar.me"
+  },
   "license": "BSD-2-Clause",
   "dependencies": {
     "express": "^4.16.3",
-    "next": "^5.1.0",
-    "react": "^16.3.0",
-    "react-dom": "^16.3.0",
-    "nextpress": "file:../src"
+    "next": "^6.0.0",
+    "react": "^16.3.2",
+    "react-dom": "^16.3.2"
   }
 }

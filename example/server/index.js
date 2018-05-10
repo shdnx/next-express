@@ -10,12 +10,12 @@ const writeFileAsync = promisify(writeFile);
 const PORT = 8000;
 
 const app = next({
-  dir: path.join(path.dirname(__dirname), "src"),
+  dir: path.join(path.dirname(__dirname), "app"),
   dev: process.env.NODE_ENV !== "production"
 });
 
+const nextpress = require("../../server").configure(express, app);
 //const nextpress = require("nextpress/server").configure(express, app);
-const nextpress = require("../../src/server").configure(express, app);
 
 app.prepare()
   .then(() => {
@@ -23,7 +23,7 @@ app.prepare()
 
     server.pageRoute({
       path: "/",
-      renderPath: "/", // redundant
+      renderPath: "/", // redundant, since it's the same as "path"
       async getProps(req, res) {
         return {
           content: await readFileAsync(path.join(path.dirname(__dirname), "data", "frontpage.txt"), "utf-8")
@@ -33,7 +33,7 @@ app.prepare()
 
     // The above is equivalent to:
     /*server.get("/", server.getPageHandler({
-      renderPath: "/frontpage",
+      renderPath: "/",
       async getProps(req, res) {
         return {
           content: await readFileAsync(path.join(path.dirname(__dirname), "data", "frontpage.txt"), "utf-8")
@@ -67,6 +67,6 @@ app.prepare()
   })
   .then(() => console.log(`> Running on http://localhost:${PORT}`))
   .catch(err => {
-    console.error(`Next.js server failed to start: ${err.stack}`);
+    console.error(`Server failed to start: ${err.stack}`);
     process.exit(1);
   });

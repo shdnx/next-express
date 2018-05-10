@@ -1,22 +1,23 @@
 {
-  "name": "next-express-router",
-  "version": "0.0.1",
-  "description": "A thin wrapper around Express to make it easy to use it with Next.js. Provides a simple API for loading data that's then passed to the page components.",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "name": "nextpress",
+  "version": "1.0.0",
+  "description": "A thin wrapper around Express.js to make it easy to use it with Next.js. Provides a simple API for loading data that's then automagically passed to the page components.",
   "keywords": [
+    "javascript",
+    "nodejs",
+    "react",
     "next.js",
     "express"
   ],
   "files": [
-    "src/*.js"
+    "*.js",
+    "lib/*.js"
   ],
   "author": {
     "name": "Gabor Kozar",
     "email": "id@gaborkozar.me>"
   },
   "license": "BSD-2-Clause",
-  "repository": "https://github.com/shdnx/next-express-router",
+  "repository": "https://github.com/shdnx/nextpress",
   "dependencies": {}
 }
