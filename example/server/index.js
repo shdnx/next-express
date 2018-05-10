@@ -14,15 +14,16 @@ const app = next({
   dev: process.env.NODE_ENV !== "production"
 });
 
-require("../../src/server").configure(express, app);
+//const nextpress = require("nextpress/server").configure(express, app);
+const nextpress = require("../../src/server").configure(express, app);
 
 app.prepare()
   .then(() => {
-    const server = express();
+    const server = nextpress();
 
     server.pageRoute({
       path: "/",
-      renderPath: "/frontpage",
+      renderPath: "/", // redundant
       async getProps(req, res) {
         return {
           content: await readFileAsync(path.join(path.dirname(__dirname), "data", "frontpage.txt"), "utf-8")
@@ -39,6 +40,27 @@ app.prepare()
         };
       }
     }));*/
+
+    server.post("/api/save", express.json(), async (req, res) => {
+      const newText = req.body.content;
+      if (!newText) {
+        res.status(400).end();
+        return;
+      }
+
+      try {
+        await writeFileAsync(
+          path.join(path.dirname(__dirname), "data", "frontpage.txt"),
+          newText
+        );
+      } catch (error) {
+        console.error("Failed to save new frontpage data: ", error.stack);
+        res.status(500).end();
+        return;
+      }
+
+      res.end();
+    });
 
     // nextpress' listen() method returns a Promise if no callback function was passed to it
     return server.listen(PORT);

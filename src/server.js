@@ -32,12 +32,12 @@ const nextpress = module.exports = {
     }
 
     return async (req, res) => {
-      let data = undefined;
+      let data;
 
       if (getProps) {
         try {
           data = await getProps(req, res);
-          data.success = true; // ?
+          data.success = true;
         } catch (error) {
           // TODO: we should allow library users to provide error handlers: one for InvalidRequestError-s, the other for all other Error-s
 
@@ -46,10 +46,11 @@ const nextpress = module.exports = {
 
             res.status(error.statusCode);
 
+            // InvalidRequestError-s are supposed to act as user-facing errors, so replying to the client with the error message is fine.
             if (req.accepts([ "text", "html" ])) {
-              res.type("text").end(`Failed to process request: ${error.message}`);
+              res.type("text").send(`Failed to process request: ${error.message}`);
             } else if (req.accepts("json")) {
-              res.type("json").end(JSON.stringify({
+              res.type("json").send(JSON.stringify({
                 success: false,
                 errorMessage: error.message
               }));
@@ -60,17 +61,24 @@ const nextpress = module.exports = {
             return;
           }
 
-          res.status(500).end("Server error");
+          res.status(500).send("Server error");
           throw error; // re-throw
         } // end catch
       }
 
       if (req.accepts("html")) {
-        nextApp.render(req, res, renderPath || req.baseUrl + req.path, data);
-      } else if (req.accepts("json") && data !== undefined) {
-        res.type("json").end(JSON.stringify(data));
+        if (!renderPath)
+          renderPath = req.baseUrl + req.path;
+
+        // pass the data in via the query, but make sure not to overwrite the query arguments, otherwise they get lost
+        const query = req.query;
+        query._nextpressData = data;
+
+        nextApp.render(req, res, renderPath, query);
+      } else if (req.accepts("json") && data) {
+        res.type("json").send(JSON.stringify(data));
       } else {
-        // HTTP 406: unsupported content type (?)
+        // HTTP 406: Not Acceptable
         res.status(406).end();
       }
     };
@@ -78,21 +86,12 @@ const nextpress = module.exports = {
 
   pageRoute(nextApp, expressRouter, {
     path,
-    method = "GET",
     middleware = [],
     ...handlerOptions
   }) {
     const handler = this.getPageHandler(nextApp, handlerOptions);
-
-    const funcName = method.toLowerCase();
-    const func = expressRouter[funcName];
-    if (!func)
-      throw new Error(`Invalid HTTP method '${method} - no such function: express.Router.${funcName}!`);
-
-    // Note: we cannot use express.Router.use() here, because then we will get express.Request objects scoped to that subrouter, and Next.js will freak out. So instead we call .get(), .post(), etc. depending on the request method.
-    // There's no point in awaiting the handler, as it doesn't return a result, and Express will not await any Promise returned from it either.
-    return func.apply(expressRouter, [ path, ...middleware, handler ]);
-  }, // end pageRoute()
+    return expressRouter.get(path, ...middleware, handler);
+  },
 
   // Hijack listen(), because we need to register the request handler of Next.js here, after all routes have presumably been registered.
   // Also provide Promise support while we're at it.
@@ -131,7 +130,9 @@ const nextpress = module.exports = {
     Object.assign(express.application, extensions);
 
     this._orgListen = express.application.listen;
-    express.application.listen = function(...args) {
+
+    // cannot use an array function here, since we need the 'this' it gets called with
+    express.application.listen = function nextpressListen(...args) {
       return nextpress.listen(nextApp, this, ...args);
     };
 

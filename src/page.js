@@ -1,14 +1,29 @@
-export async function fetchServerData(ctx) {
-  const { req, pathname, query } = ctx;
+// Turn the given Next.js page component into one that fetches its initial props from the server (communicating e.g. with an endpoint defined using nextpress.pageRoute).
+// TODO: support using this as a class decorator?
+export default function dataFetchingPage(Page) {
+  const orgGetInitialProps = Page.getInitialProps;
 
-  let data;
-  if (req) {
-    // if we're on the server, then the data was already fetched by the Express route handler, and has been passed here via the 'query'
-    data = query;
+  if (orgGetInitialProps) {
+    Page.getInitialProps = ctx => {
+      const serverDataFetchFunc = () => fetchServerData(ctx);
+      return orgGetInitialProps(ctx, serverDataFetchFunc);
+    };
   } else {
-    // otherwise we're on the client, query the data via AJAX
-    const response = await fetch(pathname, {
-      // TODO: we shouldn't hardcode "GET" here - on the server side, the request method may be something else
+    Page.getInitialProps = fetchServerData;
+  }
+
+  return Page;
+};
+
+async function fetchServerData(ctx) {
+  let data;
+  if (ctx.req) {
+    // if we're on the server, then the data was already fetched by the Express route handler, and has been passed here via ctx.query
+    data = ctx.query._nextpressData;
+    delete ctx.query._nextpressData;
+  } else {
+    // otherwise we're on the client, fetch the data via AJAX
+    const response = await fetch(ctx.asPath, {
       method: "GET",
       headers: {
         "Accept": "application/json"
@@ -19,22 +34,4 @@ export async function fetchServerData(ctx) {
   }
 
   return data;
-};
-
-export function dataFetchingPage(Page) {
-  const orgGetInitialProps = Page.getInitialProps || null;
-
-  Page.getInitialProps = async ctx => {
-    const data = await fetchServerData(ctx);
-
-    if (orgGetInitialProps) {
-      // TODO: ?
-      ctx.query = data;
-      return await orgGetInitialProps(ctx);
-    }
-
-    return data;
-  };
-
-  return Page;
 };
