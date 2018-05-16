@@ -21,6 +21,14 @@ Nextpress declares no dependencies, but requires the following to function as in
  - Next.js v5 or higher
  - Express.js v4
 
+It is recommended - but not required - to [disable the Next.js automatic filesystem routing](https://github.com/zeit/next.js#disabling-file-system-routing) when using Nextpress... or, as a matter of fact, when using a custom Express.js server. In your `next.config.js`:
+
+```javascript
+module.exports = {
+  useFileSystemPublicRoutes: false
+};
+```
+
 ## Installation
 
 Using NPM:
@@ -62,10 +70,14 @@ const nextpress = require("nextpress/server").configure(express, app);
 
 app.prepare()
   .then(() => {
-    // like 'express()', 'nextpress()' creates an Express.js application, augumented with Nextpress: all the normal Express.js functions work as normal
+    // like 'express()', 'nextpress()' creates an Express.js
+    // application, augumented with Nextpress: all the normal
+    // Express.js functions work as normal
     const server = nextpress();
 
-    // one of the things that Nextpress adds is a method called pageRoute() that you can use to define a route that serves a Next.js page
+    // one of the things that Nextpress adds is a method called
+    // pageRoute() that you can use to define a route that serves
+    // a Next.js page
     server.pageRoute({
       // GET requests to this path will be handled by this route
       path: "/",
@@ -74,7 +86,9 @@ app.prepare()
       // here this is redundant, since it's the same as "path"
       renderPath: "/",
 
-      // an async function that fetches the data to be passed to the page component rendered as props - this will always run on the server
+      // an async function that fetches the data to be passed to
+      // the page component rendered as props - this will always
+      // run on the server
       async getProps(req, res) {
         return {
           content: await readFileAsync(path.join(__dirname, "data.txt"), "utf-8")
@@ -82,10 +96,14 @@ app.prepare()
       }
     });
 
-    // you can register any other routes as you want; you can also use ALL the standard Express functions such as server.get(), server.post(), server.route(), server.use(), etc.
+    // you can register any other routes as you want; you can also
+    // use ALL the standard Express functions such as
+    // server.get(), server.post(), server.use(), etc.
 
     // finally, start the server
-    // nextpress' listen() method returns a Promise if no callback function was passed to it; it also automatically registers the Next.js request handler (app.getRequestHandler())
+    // nextpress' listen() method returns a Promise if no callback
+    // function was passed to it; it also automatically registers
+    // the Next.js request handler (app.getRequestHandler())
     return server.listen(PORT);
   })
   .then(() => console.log(`> Running on http://localhost:${PORT}`))
@@ -106,7 +124,10 @@ class FrontPage extends React.Component {
   // ...
 };
 
-// nextpressPage() automatically generates a getInitialProps() for the page component that takes care of fetching the data as needed, regardless of whether it's running on the server or client
+// nextpressPage() automatically generates a getInitialProps() for
+// the page component that takes care of fetching the data as
+// needed, regardless of whether it's running on the server or
+// client
 export default nextpressPage(FrontPage);
 ```
 
@@ -114,4 +135,30 @@ That's it!
 
 ## Documentation
 
+### nextpress/server
+
 TODO
+
+### nextpress/page
+
+#### Default export: `nextpressPage(PageComponent)`
+
+Auguments the given page component class such that it defines a static async `getInitialProps()` function that automatically fetches the data from the corresponding route on the server defined by `nextpress.pageRoute()` as necessary.
+
+**Parameters**:
+ - `PageComponent`: the page component class that requires data from the server.
+
+**Return value**: the `PageComponent` parameter itself.
+
+**Details**: this function does not perform an HTTP request when performing the initial server-side rendering.
+
+This function acts as a replacement for defining your own `getInitialProps()` on your page component class. You should not use this function if your page does not require data from the server.
+
+You **are** allowed to define a custom `getInitialProps()` on your page component class even when using this function. If you do, all that Nextpress will do is call your custom `getInitialProps()`, passing it all normal arguments, and an extra function argument called `serverDataFetchFunc()`.
+
+`serverDataFetchFunc()` is an async function that takes no parameters, and returns (a Promise of) the server data acquired by querying the route on the server defined with `nextpress.pageRoute()` corresponding to the current page. You cannot use this function if you didn't use `nextpress.pageRoute()` on the server side to define the route that serves this page.
+
+When running on the server, `serverDataFetchFunc()` will not perform an HTTP request, and will be essentially a free operation in terms of performance.
+When running on the client, it will send an HTTP `GET` request to the page's URL, including any query arguments. It will set only one extra header: `Accept: application/json`. This request will be handled by `nextpress.pageRoute()` route on the server: the server data will be serialized to JSON and passed to the client.
+
+If you do not define your own `getInitialProps()`, `nextpressPage()` will define it for you, which will automatically call `serverDataFetchFunc()`.
