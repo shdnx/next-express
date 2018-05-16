@@ -13,6 +13,9 @@
     "*.js",
     "lib/*.js"
   ],
+  "engines": {
+    "node" : ">=7.6.0"
+  },
   "author": {
     "name": "Gabor Kozar",
     "email": "id@gaborkozar.me>"
