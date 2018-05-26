@@ -25,7 +25,9 @@ Next-Express declares no dependencies, but requires the following to function as
 
 ## Installation
 
-Using NPM:
+The package is available through the NPM package manager as [next-express](https://www.npmjs.com/package/next-express).
+
+Installation using NPM:
 
 ```bash
 npm install --save next-express
