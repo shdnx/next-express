@@ -78,9 +78,8 @@ class FrontPage extends React.Component {
                 <textarea
                   onChange={this._handleEditChange}
                   style={{ width: 400, height: 100 }}
-                >
-                  {this.state.editingContent}
-                </textarea>
+                  value={this.state.editingContent}
+                ></textarea>
 
                 <div>
                   <button onClick={this._handleEditSave}>Save</button>

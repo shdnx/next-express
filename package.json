@@ -26,5 +26,6 @@
   "dependencies": {},
   "peerDependencies": {
     "express": "4.x"
-  }
+  },
+  "scripts": {}
 }

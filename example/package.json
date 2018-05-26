@@ -1,7 +1,7 @@
 {
   "name": "nextpress-example",
   "version": "1.0.0",
-  "description": "An example application built with Next.js, React, Express and nextpress.",
+  "description": "An example application for Nextpress.",
   "main": "server/index.js",
   "scripts": {
     "start": "nodemon -V -w server",
@@ -11,10 +11,10 @@
     "name": "Gabor Kozar",
     "email": "id@gaborkozar.me"
   },
-  "license": "BSD-2-Clause",
+  "license": "BSD-3-Clause",
   "dependencies": {
     "express": "^4.16.3",
-    "next": "^6.0.0",
+    "next": "^6.0.3",
     "react": "^16.3.2",
     "react-dom": "^16.3.2"
   }
