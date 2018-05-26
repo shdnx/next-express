@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 
-// OtherPage doesn't need to be decorated with nextpress/page, since it doesn't need any server data.
+// OtherPage doesn't need to be decorated with next-express/page, since it doesn't need any server data.
 
 export default function OtherPage() {
   return (

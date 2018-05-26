@@ -14,11 +14,11 @@ const app = next({
   dev: process.env.NODE_ENV !== "production"
 });
 
-const nextpress = require("../../server")(app);
-//const nextpress = require("nextpress/server")(app);
+const nextExpress = require("../../server")(app);
+//const nextExpress = require("next-express/server")(app);
 
-// Makes the nextpress functionality available through this express object.
-nextpress.injectInto(express);
+// Makes the next-express functionality available through this express object.
+nextExpress.injectInto(express);
 
 app.prepare()
   .then(() => {
@@ -36,6 +36,16 @@ app.prepare()
 
     // The above is equivalent to:
     /*server.get("/", server.getPageHandler({
+      renderPath: "/",
+      async getProps(req, res) {
+        return {
+          content: await readFileAsync(path.join(path.dirname(__dirname), "data", "frontpage.txt"), "utf-8")
+        };
+      }
+    }));*/
+
+    // Even without using nextExpress.injectInto(), the above is also equivalent to:
+    /*server.get("/", nextExpress.getPageHandler({
       renderPath: "/",
       async getProps(req, res) {
         return {
@@ -65,7 +75,7 @@ app.prepare()
       res.end();
     });
 
-    // nextpress' listen() method returns a Promise if no callback function was passed to it
+    // next-express' listen() method returns a Promise if no callback function was passed to it
     return server.listen(PORT);
   })
   .then(() => console.log(`> Running on http://localhost:${PORT}`))

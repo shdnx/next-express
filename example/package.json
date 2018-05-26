@@ -1,7 +1,7 @@
 {
-  "name": "nextpress-example",
+  "name": "next-express-example",
   "version": "1.0.0",
-  "description": "An example application for Nextpress.",
+  "description": "An example application for NextExpress.js.",
   "main": "server/index.js",
   "scripts": {
     "start": "nodemon -V -w server",

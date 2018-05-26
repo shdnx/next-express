@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
 
-// Since nextpress' pageRoute() was used to declare the route for this page, you should use nextpress/page to get the data fetched from the server.
-import nextpressPage from "nextpress/page";
+// Since next-express' pageRoute() was used to declare the route for this page, you should use next-express/page to get the data fetched from the server.
+import nextExpressPage from "next-express/page";
 
 class FrontPage extends React.Component {
   state = {
@@ -99,4 +99,4 @@ class FrontPage extends React.Component {
   }
 };
 
-export default nextpressPage(FrontPage);
+export default nextExpressPage(FrontPage);
