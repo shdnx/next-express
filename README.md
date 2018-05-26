@@ -58,7 +58,7 @@ const app = next({
 });
 
 // initialize and inject Nextpress into Express.js
-const nextpress = require("nextpress/server").configure(express, app);
+const nextpress = require("nextpress/server")(app).injectInto(express);
 
 app.prepare()
   .then(() => {
@@ -177,3 +177,7 @@ When running on the server, `serverDataFetchFunc()` will not perform an HTTP req
 When running on the client, it will send an HTTP `GET` request to the page's URL, including any query arguments. It will set only one extra header: `Accept: application/json`. This request will be handled by `nextpress.pageRoute()` route on the server: the server data will be serialized to JSON and passed to the client.
 
 If you do not define your own `getInitialProps()`, `nextpressPage()` will define it for you, which will automatically call `serverDataFetchFunc()`.
+
+## License
+
+BSD 3-Clause License, see [LICENSE](https://github.com/shdnx/nextpress/blob/master/LICENSE). For what this means, see the overview at [tldrlegal.com](https://tldrlegal.com/license/bsd-3-clause-license-(revised)). In a nutshell: feel free to do with it whatever you please, so long as you give credit where credit is due.

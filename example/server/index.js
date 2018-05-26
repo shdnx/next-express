@@ -14,8 +14,8 @@ const app = next({
   dev: process.env.NODE_ENV !== "production"
 });
 
-const nextpress = require("../../server").configure(express, app);
-//const nextpress = require("nextpress/server").configure(express, app);
+const nextpress = require("../../server")(app).injectInto(express);
+//const nextpress = require("nextpress/server")(app).injectInto(express);
 
 app.prepare()
   .then(() => {
