@@ -3,9 +3,6 @@ const path = require("path");
 module.exports = {
   distDir: "build",
 
-  // disable filesystem routing, see https://github.com/zeit/next.js#disabling-file-system-routing
-  useFileSystemPublicRoutes: false,
-
   webpack(config, options) {
     Object.assign(config.resolve.alias, {
       // Note: for some reason this doesn't work unless it points directly to the "lib" directory - i.e. pointing to the root folder causes Babel to fail with syntax error on the "export" statement. Wtf?

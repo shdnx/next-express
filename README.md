@@ -21,14 +21,6 @@ Nextpress declares no dependencies, but requires the following to function as in
  - Next.js v5 or higher
  - Express.js v4
 
-It is recommended - but not required - to [disable the Next.js automatic filesystem routing](https://github.com/zeit/next.js#disabling-file-system-routing) when using Nextpress... or, as a matter of fact, when using a custom Express.js server. In your `next.config.js`:
-
-```javascript
-module.exports = {
-  useFileSystemPublicRoutes: false
-};
-```
-
 ## Installation
 
 Using NPM:
@@ -150,11 +142,34 @@ Auguments the given page component class such that it defines a static async `ge
 
 **Return value**: the `PageComponent` parameter itself.
 
-**Details**: this function does not perform an HTTP request when performing the initial server-side rendering.
+**Details**:
 
 This function acts as a replacement for defining your own `getInitialProps()` on your page component class. You should not use this function if your page does not require data from the server.
 
-You **are** allowed to define a custom `getInitialProps()` on your page component class even when using this function. If you do, all that Nextpress will do is call your custom `getInitialProps()`, passing it all normal arguments, and an extra function argument called `serverDataFetchFunc()`.
+You **are** allowed to define a custom `getInitialProps()` on your page component class even when using this function. If you do, all that Nextpress will do is call your custom `getInitialProps()`, passing it all normal arguments, and an extra function argument called `serverDataFetchFunc()`. This gives you full control of how and went you want server data fetching to happen. For example, you might only want to pull data from the server if you don't already have it in some local cache:
+
+```javascript
+import React from "react";
+import nextpressPage from "nextpress/page";
+
+class MyPage extends React.Component {
+  static async getInitialProps(context, serverDataFetchFunc) {
+    let data;
+    if (haveInLocalCache()) {
+      data = retrieveFromLocalCache();
+    } else {
+      data = await serverDataFetchFunc();
+      storeInLocalCache(data);
+    }
+
+    // ...
+  }
+
+  // ...
+};
+
+export default nextpressPage(MyPage);
+```
 
 `serverDataFetchFunc()` is an async function that takes no parameters, and returns (a Promise of) the server data acquired by querying the route on the server defined with `nextpress.pageRoute()` corresponding to the current page. You cannot use this function if you didn't use `nextpress.pageRoute()` on the server side to define the route that serves this page.
 
