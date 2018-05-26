@@ -1,4 +1,4 @@
-# Nextpress - Next.js + Express.js made easy
+# Nextpress.js - Next.js + Express.js made easy
 
 [Next.js](https://nextjs.org) is a framework for easily creating web applications using Node.js and React. It provides a built-in solution for styling, routing, handling server-side handling, and more. With complicated websites, you often want to use it with a [custom Node.js webserver](https://nextjs.org/docs#custom-server-and-routing), often written using [Express.js](http://expressjs.com). Nextpress is a tiny library that makes this trivial.
 
@@ -125,13 +125,98 @@ export default nextpressPage(FrontPage);
 
 That's it!
 
+For a more detailed example, see the [included example application](https://github.com/shdnx/nextpress/tree/master/example).
+
 ## Documentation
 
-### nextpress/server
+### `nextpress/server`
 
-TODO
+This module exports a single function that takes the Next.js application object as parameter and returns the `nextpress` object that exposes the following functions:
 
-### nextpress/page
+#### `injectInto(express)`
+
+Makes the Nextpress functionality conveniently available through the given `express` object. This adds the functions [`nextpress.pageRoute()`](#pagerouteexpressrouter-options) and [`nextpress.getPageHandler()`](#getpagehandleroptions) to all `express.application` and `express.Router` objects, without having to explicitly pass the express object instance as argument. Furthermore, it overrides `express.application.listen` with [`nextpress.listen()`](#listenexpressapp-listenargs).
+
+Using this function is the most convenient way of utilizing the features of Nextpress, and is recommended. However, it might not be possible or desirable in all scenarios.
+
+#### `getPageHandler(options)`
+
+Creates an Express.js request handler function to handle a request to a given Next.js page.
+
+**Parameters**:
+ - `options : Object`: an object with the following properties:
+    - `renderPath : String`: the path to the Next.js page to render. It will be passed directly as third argument to [`nextApp.render()`](https://nextjs.org/docs/#custom-server-and-routing). Optional: if omitted, the Express route path is used.
+    - `async getProps(req : express.Request, res : express.Response) : Promise(Object)`: an async function that will be called and the resulting `Promise` awaited whenever the page's data is requested. Takes the usual `express.Request` and `express.Response` objects as parameter, like any Express.js request handler function. This function is allowed to throw (as in, reject the returned `Promise` with) a [`nextpress.InvalidRequestError`](#invalidrequesterror).
+
+Instead of an object, `getPageHandler()` also accepts just a function as the only argument, which will be treated as the `getProps()` function described above.
+
+**Return value**: an Express.js route handler `Function` that can be passed to `express.Router.get()`, `express.Router.use()`, etc.
+
+**Details**:
+
+This is the central function of Nextpress, meant to be used in conjunction with [`nextpressPage()`](#default-export-nextpresspagepagecomponent) from `nextpress/page`. It generates an Express.js route handler function that serves dual purposes:
+
+1) Handles `GET` requests that accept `application/json` but not `text/html` (as expressed by the HTTP [`Accept` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept)) by obtaining the page data from `options.getProps()` and sending them back to the client as JSON.
+
+Such requests will be performed automatically by `nextpressPage()` from `nextpress/page` whenever the given page is navigated to, and its static `getInitialProps()` function is called by Next.js. The object returned by `options.getProps()` will be passed as `props` to the page component.
+
+2) Handles `GET` requests that accept `text/html` (as expressed by the HTTP [`Accept` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept)) by loading the props by calling `options.getProps()` and then rendering the Next.js page specified by `options.renderPath`.
+
+3) Any other requests are considered invalid and are responded to with a status code of [406 Not Acceptable](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406).
+
+In both valid scenarios, `options.getProps()` is allowed to throw (as in, reject the returned `Promise` with) a `nextpress.InvalidRequestError` when the request is invalid. The client will be sent an HTTP response with the status code given to the constructor (400 Bad Request by default). The body of the response depends on the accepted content type (as specified by the `Accept` request header):
+ - If the client accepts `text/plain` or `text/html`, the response body will be the error message.
+ - If the client accepts `text/json`, the response body will be the JSON object of the following shape:
+    - `requestSuccess = false`
+    - `errorMesssage : String`: the error message
+ - Otherwise, the response body will be empty.
+
+Take care that the error message (but not the stack trace) given to `nextpress.InvalidRequestError` will be exposed to the end user! Do not disclose any internal, or security-critical details in it.
+
+Note that for consistency, when no `InvalidRequestError` is thrown, the object returned by `options.getProps()` is modified by adding a property `requestSuccess` with the value `true`.
+
+#### `pageRoute(expressRouter, options)`
+
+Registers an HTTP `GET` route with the specified express router-like object (either an `express.Router` or an `express.application`).
+
+**Parameters**:
+ - `expressRouter`: an `express.Router` or an `express.application` object.
+ - `options : Object`: object with the following properties:
+    - `path : String`: the path pattern on which to listen to incoming requests. Will be passed as a first argument to `expressRouter.get()`, so the same wildcard and placeholder patterns can be used.
+    - `middleware : Array(Function)`: an optional array of Express middlewares to pass to `expressRouter.get()`; these middleware will be executed before the page handler itself.
+    - `...handlerOptions`: any remaining properties will be directly passed on to [`nextpress.getPageHandler()`](#getpagehandleroptions).
+
+**Return value**: `undefined` (same as `express.Router.get()`).
+
+This function acts as a convenience wrapper around [`getPageHandler()`](#getpagehandleroptions).
+
+#### `listen(expressApp, ...listenArgs)`
+
+A convenience wrapper function around `expressApp.listen()`.
+
+**Parameters**:
+ - `expressApp`: an `express.application` object.
+ - `...listenArgs`: any further arguments will be directly passed along to `expressApp.listen()`.
+
+**Return value**: `Promise` if no callback argument was specified, otherwise `undefined` (same as `express.application.listen()`).
+
+**Details**:
+
+This function ensures that the Next.js request handler (obtained by `nextApp.getRequestHandler()`) is registered with `expressApp`. Otherwise, it simply calls `expressApp.listen()`.
+
+The only other difference is that this function supports `Promise`s: if no callback function is passed as the last argument, then a `Promise` is returned which resolves when the callback function would have been called. This matches the behaviour of the function generated by `util.promisify(expressApp.listen)`. For details, see the documentation of Node.js' [`util.promisify()`](https://nodejs.org/dist/latest-v8.x/docs/api/util.html#util_util_promisify_original).
+
+#### `InvalidRequestError`
+
+Represents an error that can be thrown by user code inside `getPageHandler()` or `pageRoute()` to indicate that request was invalid an expose the error to the user. Inherits from [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error).
+
+For information on how to use this class, see [`getPageHandler()`](#getpagehandleroptions).
+
+###### `constructor(message : String, statusCode : ?Number, ...errorArgs)`
+
+Constructs a new `InvalidRequestError` object with the specified error message, optional HTTP status code (defaults to [400 Bad Request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)) and any other arguments to be passed directly to the `Error` base constructor.
+
+### `nextpress/page`
 
 #### Default export: `nextpressPage(PageComponent)`
 
@@ -177,6 +262,10 @@ When running on the server, `serverDataFetchFunc()` will not perform an HTTP req
 When running on the client, it will send an HTTP `GET` request to the page's URL, including any query arguments. It will set only one extra header: `Accept: application/json`. This request will be handled by `nextpress.pageRoute()` route on the server: the server data will be serialized to JSON and passed to the client.
 
 If you do not define your own `getInitialProps()`, `nextpressPage()` will define it for you, which will automatically call `serverDataFetchFunc()`.
+
+## Credits and contact
+
+Created by [Gábor Kozár](id@gaborkozar.me).
 
 ## License
 

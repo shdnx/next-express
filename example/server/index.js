@@ -14,12 +14,15 @@ const app = next({
   dev: process.env.NODE_ENV !== "production"
 });
 
-const nextpress = require("../../server")(app).injectInto(express);
-//const nextpress = require("nextpress/server")(app).injectInto(express);
+const nextpress = require("../../server")(app);
+//const nextpress = require("nextpress/server")(app);
+
+// Makes the nextpress functionality available through this express object.
+nextpress.injectInto(express);
 
 app.prepare()
   .then(() => {
-    const server = nextpress();
+    const server = express();
 
     server.pageRoute({
       path: "/",
