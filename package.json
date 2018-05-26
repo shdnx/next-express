@@ -1,17 +1,13 @@
 {
   "name": "nextpress",
   "version": "1.0.0",
-  "description": "A thin wrapper around Express.js to make it easy to use it with Next.js. Provides a simple API for loading data that's then automagically passed to the page components.",
+  "description": "Makes it easy to write Next.js custom webservers with Express.js by abstracting away all boilerplate involved in loading page component props.",
   "keywords": [
     "javascript",
     "nodejs",
     "react",
     "next.js",
     "express"
-  ],
-  "files": [
-    "*.js",
-    "lib/*.js"
   ],
   "engines": {
     "node" : ">=7.6.0"
@@ -20,7 +16,15 @@
     "name": "Gabor Kozar",
     "email": "id@gaborkozar.me>"
   },
-  "license": "BSD-2-Clause",
-  "repository": "https://github.com/shdnx/nextpress",
-  "dependencies": {}
+  "license": "BSD-3-Clause",
+  "homepage": "https://github.com/shdnx/nextpress",
+  "bugs": "https://github.com/shdnx/nextpress/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shdnx/nextpress.git"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "express": "4.x"
+  }
 }
