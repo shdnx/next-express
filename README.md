@@ -17,11 +17,11 @@ Next-Express allows you to solve this problem trivially, keeping your code clear
 
 ## Requirements
 
-Next-Express declares no dependencies, but requires the following to function as intended:
-
  - Node.js v7.6.0 or higher (has to support async/await)
- - Next.js v5 or higher
+ - Next.js v4 or higher
  - Express.js v4
+
+Both Next.js and Express.js are declared as [peer dependencies](https://docs.npmjs.com/files/package.json#peerdependencies).
 
 ## Installation
 
@@ -134,7 +134,7 @@ For a more detailed example, see the [included example application](https://gith
 
 ## Documentation
 
-### `next-express/server`
+### Module `next-express/server`
 
 This module exports a single function that takes the Next.js application object as parameter and returns the `nextExpress` object that exposes the following functions:
 
@@ -162,23 +162,22 @@ Instead of an object, `getPageHandler()` also accepts just a function as the onl
 This is the central function of Next-Express, meant to be used in conjunction with [`nextExpressPage()`](#default-export-nextexpresspagepagecomponent) from `next-express/page`. It generates an Express.js route handler function that serves dual purposes:
 
 1) Handles `GET` requests that accept `application/json` but not `text/html` (as expressed by the HTTP [`Accept` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept)) by obtaining the page data from `options.getProps()` and sending them back to the client as JSON.
-
 Such requests will be performed automatically by `nextExpressPage()` from `next-express/page` whenever the given page is navigated to, and its static `getInitialProps()` function is called by Next.js. The object returned by `options.getProps()` will be passed as `props` to the page component.
 
 2) Handles `GET` requests that accept `text/html` (as expressed by the HTTP [`Accept` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept)) by loading the props by calling `options.getProps()` and then rendering the Next.js page specified by `options.renderPath`.
 
 3) Any other requests are considered invalid and are responded to with a status code of [406 Not Acceptable](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406).
 
-In both valid scenarios, `options.getProps()` is allowed to throw (as in, reject the returned `Promise` with) a `nextExpress.InvalidRequestError` when the request is invalid. The client will be sent an HTTP response with the status code given to the constructor (400 Bad Request by default). The body of the response depends on the accepted content type (as specified by the `Accept` request header):
+In both valid scenarios, `options.getProps()` is allowed to throw (as in, reject the returned `Promise` with) a [`nextExpress.InvalidRequestError`](#invalidrequesterror) when the request is invalid. The client will be sent an HTTP response with the status code given to the constructor (400 Bad Request by default). The body of the response depends on the accepted content type (as specified by the `Accept` request header):
  - If the client accepts `text/plain` or `text/html`, the response body will be the error message.
  - If the client accepts `text/json`, the response body will be the JSON object of the following shape:
     - `requestSuccess = false`
     - `errorMesssage : String`: the error message
  - Otherwise, the response body will be empty.
 
-Take care that the error message (but not the stack trace) given to `nextExpress.InvalidRequestError` will be exposed to the end user! Do not disclose any internal, or security-critical details in it.
+Take care that the error message (but not the stack trace) given to [`nextExpress.InvalidRequestError`](#invalidrequesterror) will be exposed to the end user! Do not disclose any internal, or security-critical details in it.
 
-Note that for consistency, when no `InvalidRequestError` is thrown, the object returned by `options.getProps()` is modified by adding a property `requestSuccess` with the value `true`.
+Note that for consistency, when no [`nextExpress.InvalidRequestError`](#invalidrequesterror) is thrown, the object returned by `options.getProps()` is modified by adding a property `requestSuccess` with the value `true`.
 
 #### `pageRoute(expressRouter, options)`
 
@@ -187,13 +186,13 @@ Registers an HTTP `GET` route with the specified express router-like object (eit
 **Parameters**:
  - `expressRouter`: an `express.Router` or an `express.application` object.
  - `options : Object`: object with the following properties:
-    - `path : String`: the path pattern on which to listen to incoming requests. Will be passed as a first argument to `expressRouter.get()`, so the same wildcard and placeholder patterns can be used.
+    - `path : String`: the path pattern on which to listen to incoming requests. Will be passed as a first argument to `expressRouter.get()`, so the same wildcard and placeholder patterns can be used. Required.
     - `middleware : Array(Function)`: an optional array of Express middlewares to pass to `expressRouter.get()`; these middleware will be executed before the page handler itself.
     - `...handlerOptions`: any remaining properties will be directly passed on to [`nextExpress.getPageHandler()`](#getpagehandleroptions).
 
 **Return value**: `undefined` (same as `express.Router.get()`).
 
-This function acts as a convenience wrapper around [`getPageHandler()`](#getpagehandleroptions).
+**Details**: This function acts as a simple convenience wrapper around [`getPageHandler()`](#getpagehandleroptions).
 
 #### `listen(expressApp, ...listenArgs)`
 
@@ -221,11 +220,11 @@ For information on how to use this class, see [`getPageHandler()`](#getpagehandl
 
 Constructs a new `InvalidRequestError` object with the specified error message, optional HTTP status code (defaults to [400 Bad Request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)) and any other arguments to be passed directly to the `Error` base constructor.
 
-### `next-express/page`
+### Module `next-express/page`
 
 #### Default export: `nextExpressPage(PageComponent)`
 
-Auguments the given page component class such that it defines a static async `getInitialProps()` function that automatically fetches the data from the corresponding route on the server defined by `nextExpress.pageRoute()` as necessary.
+Auguments the given page component class such that it defines a static async `getInitialProps()` function that automatically fetches the data from the corresponding route on the server defined by [`nextExpress.pageRoute()`](#pagerouteexpressrouter-options) or [`nextExpress.getPageHandler()`](#getpagehandleroptions) as necessary.
 
 **Parameters**:
  - `PageComponent`: the page component class that requires data from the server.
@@ -236,7 +235,7 @@ Auguments the given page component class such that it defines a static async `ge
 
 This function acts as a replacement for defining your own `getInitialProps()` on your page component class. You should not use this function if your page does not require data from the server.
 
-You **are** allowed to define a custom `getInitialProps()` on your page component class even when using this function. If you do, all that Next-Express will do is call your custom `getInitialProps()`, passing it all normal arguments, and an extra function argument called `serverDataFetchFunc()`. This gives you full control of how and went you want server data fetching to happen. For example, you might only want to pull data from the server if you don't already have it in some local cache:
+You *are* allowed to define a custom `getInitialProps()` on your page component class even when using this function. If you do, all that Next-Express will do is call your custom `getInitialProps()`, passing it all normal arguments, and an extra function argument called `serverDataFetchFunc()`. This gives you full control of how and went you want server data fetching to happen. For example, you might only want to pull data from the server if you don't already have it in some local cache:
 
 ```javascript
 import React from "react";
@@ -261,16 +260,17 @@ class MyPage extends React.Component {
 export default nextExpressPage(MyPage);
 ```
 
-`serverDataFetchFunc()` is an async function that takes no parameters, and returns (a Promise of) the server data acquired by querying the route on the server defined with `nextExpress.pageRoute()` corresponding to the current page. You cannot use this function if you didn't use `nextExpress.pageRoute()` on the server side to define the route that serves this page.
+`serverDataFetchFunc()` is an async function that takes no parameters, and returns (a Promise of) the server data acquired by querying the route on the server defined with [`nextExpress.pageRoute()`](#pagerouteexpressrouter-options) or [`nextExpress.getPageHandler()`](#getpagehandleroptions) corresponding to the current page. You cannot use this function if you didn't use those functions on the server side to define the route that serves this page.
 
 When running on the server, `serverDataFetchFunc()` will not perform an HTTP request, and will be essentially a free operation in terms of performance.
-When running on the client, it will send an HTTP `GET` request to the page's URL, including any query arguments. It will set only one extra header: `Accept: application/json`. This request will be handled by `nextExpress.pageRoute()` route on the server: the server data will be serialized to JSON and passed to the client.
+When running on the client, it will send an HTTP `GET` request to the page's URL, including any query arguments. It will set only one extra header: `Accept: application/json`. This request will be handled by [`nextExpress.getPageHandler()`](#getpagehandleroptions) route on the server: the server data will be serialized to JSON and passed to the client.
 
 If you do not define your own `getInitialProps()`, `nextExpressPage()` will define it for you, which will automatically call `serverDataFetchFunc()`.
 
 ## Credits and contact
 
-Created by [Gábor Kozár](id@gaborkozar.me).
+Created by [Gábor Kozár](mailto:id@gaborkozar.me).
+Please do not e-mail me with bugs, feature requests and other issues: use the [issue tracker](https://github.com/shdnx/next-express/issues) instead.
 
 ## License
 

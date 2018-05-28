@@ -3,8 +3,6 @@
   "version": "1.0.0",
   "description": "Makes it easy to write Next.js custom webservers with Express.js by abstracting away all boilerplate involved in loading page component props.",
   "keywords": [
-    "javascript",
-    "nodejs",
     "react",
     "next.js",
     "express"
@@ -25,7 +23,8 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "express": "4.x"
+    "express": "4.x",
+    "next": ">=4.0.0"
   },
   "scripts": {}
 }
