@@ -1,1 +1,1 @@
-export { default } from "./lib/page";
+module.exports = require('./lib/page');
