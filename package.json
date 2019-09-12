@@ -1,6 +1,6 @@
 {
   "name": "next-express",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Makes it easy to write Next.js custom webservers with Express.js by abstracting away all boilerplate involved in loading page component props.",
   "keywords": [
     "react",
