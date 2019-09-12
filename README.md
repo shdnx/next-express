@@ -17,9 +17,9 @@ Next-Express allows you to solve this problem trivially, keeping your code clear
 
 ## Requirements
 
- - Node.js v7.6.0 or higher (has to support async/await)
- - Next.js v4 or higher
- - Express.js v4
+ - Node.js v7.6.0 or higher (has to support async/await) (last tested with 10.16.3)
+ - Next.js v4 or higher (last tested with 9.0.5)
+ - Express.js v4 (last tested with 4.17.1)
 
 Both Next.js and Express.js are declared as [peer dependencies](https://docs.npmjs.com/files/package.json#peerdependencies).
 
